@@ -1,31 +1,106 @@
 :root {
-  --background-color: #f0f2f5;
-  --container-bg-color: #ffffff;
-  --card-bg-color: #f9f9f9;
-  --text-primary-color: #1c1c1e;
-  --text-secondary-color: #6c6c70;
-  --border-color: #e5e5e5;
-  --accent-color: #007aff;
-  --accent-color-light: #eef7ff;
-  --shadow-color: rgba(0, 0, 0, 0.1);
-  --button-text-color: #ffffff;
+  --background-color: #121212;
+  --surface-color: #1e1e1e;
+  --elevated-surface: #242424;
+  --card-bg-color: #181818;
+  --text-primary: #ffffff;
+  --text-secondary: #b3b3b3;
+  --text-muted: #6a6a6a;
+  --border-color: #2a2a2a;
+  --accent-primary: #1db954;
+  --accent-hover: #1ed760;
+  --accent-pressed: #1aa34a;
+  --accent-subtle: rgba(29, 185, 84, 0.1);
+  --error-color: #e22134;
+  --error-bg: rgba(226, 33, 52, 0.1);
+  --shadow-small: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-large: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+  --transition-fast: 0.15s ease;
+  --transition-smooth: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-body.dark-theme {
-  --background-color: #121212;
-  --container-bg-color: #1e1e1e;
-  --card-bg-color: #2a2a2a;
-  --text-primary-color: #e1e1e1;
-  --text-secondary-color: #a8a8a8;
-  --border-color: #3a3a3a;
-  --accent-color: #0a84ff;
-  --accent-color-light: #2a3a4a;
-  --shadow-color: rgba(0, 0, 0, 0.4);
-  --button-text-color: #ffffff;
+body.light-theme {
+  --background-color: #ffffff;
+  --surface-color: #f6f6f6;
+  --elevated-surface: #ffffff;
+  --card-bg-color: #ffffff;
+  --text-primary: #000000;
+  --text-secondary: #6a6a6a;
+  --text-muted: #9a9a9a;
+  --border-color: #e0e0e0;
+  --accent-primary: #1db954;
+  --accent-hover: #1ed760;
+  --accent-pressed: #1aa34a;
+  --accent-subtle: rgba(29, 185, 84, 0.08);
+  --error-color: #e22134;
+  --error-bg: rgba(226, 33, 52, 0.08);
+  --shadow-small: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.15);
+  --shadow-large: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  padding: 0;
   background-color: var(--background-color);
-  transition: background-color 0.3s ease;
+  color: var(--text-primary);
+  font-family: 'Circular', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  transition: all var(--transition-smooth);
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: var(--border-radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+p {
+  margin: 0;
+  font-weight: 400;
 }
