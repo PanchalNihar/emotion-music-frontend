@@ -1,0 +1,97 @@
+<div class="theme-toggle-container">
+  <label class="theme-switch" title="Toggle theme">
+    <input type="checkbox" (change)="toggleTheme()" [checked]="isDarkMode">
+    <span class="slider"></span>
+  </label>
+</div>
+
+<div class="container">
+  <header>
+    <h1>Mood Music</h1>
+    <p>Discover music that matches your current vibe. Tell us how you're feeling or let us analyze your mood.</p>
+  </header>
+
+  <main>
+    <div *ngIf="!isLoading && !results" class="input-container">
+      <div class="input-card">
+        <h3>Image Analysis</h3>
+        <p>Upload a photo and let our AI detect your emotions to curate the perfect playlist for your mood.</p>
+        <label for="file-upload" class="upload-button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 7.828 3h.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 11.828 5H13a1 1 0 0 1 1 1v6zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2z"/>
+            <path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 6.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/>
+          </svg>
+          Upload Photo
+        </label>
+        <input id="file-upload" type="file" (change)="onFileSelected($event)" accept="image/*">
+      </div>
+      
+      <div class="input-card">
+        <h3>Text Description</h3>
+        <p>Describe your current mood or the vibe you're looking for in a few words.</p>
+        <div class="text-search-form">
+          <input #moodInput 
+                 type="text" 
+                 class="mood-input" 
+                 placeholder="happy, Sad..." 
+                 (keyup.enter)="onTextSearch(moodInput.value)"
+                 maxlength="50">
+          <button (click)="onTextSearch(moodInput.value)" class="search-button">
+            Search
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="isLoading" class="state-indicator">
+      <div class="spinner"></div>
+      <p>Analyzing your mood and finding the perfect tracks...</p>
+    </div>
+    
+    <div *ngIf="errorMessage" [@fadeInOut] class="state-indicator error-message">
+      <h3>Something went wrong</h3>
+      <p>{{ errorMessage }}</p>
+      <button (click)="reset()" class="reset-button">Try Again</button>
+    </div>
+    
+    <div *ngIf="results && !isLoading && !errorMessage" [@fadeInOut] class="results-section">
+      <h2>We detected you're feeling <span class="emotion">{{ results.emotion }}</span></h2>
+      <p>Here's a curated selection of tracks that match your vibe:</p>
+      
+      <div class="track-list">
+        <div *ngFor="let track of results.tracks; let i = index" class="track-card">
+          <img [src]="track.album_art_url || 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=64&h=64&fit=crop&crop=center'" 
+               alt="Album artwork for {{ track.name }}" 
+               class="album-art"
+               loading="lazy">
+          <div class="track-info">
+            <strong [title]="track.name">{{ track.name }}</strong>
+            <p [title]="track.artist">{{ track.artist }}</p>
+            <a *ngIf="track.spotify_url" 
+               [href]="track.spotify_url" 
+               target="_blank" 
+               rel="noopener noreferrer"
+               class="spotify-link"
+               [attr.aria-label]="'Listen to ' + track.name + ' by ' + track.artist + ' on Spotify'">
+              Listen on Spotify
+            </a>
+          </div>
+          <audio *ngIf="track.has_preview" 
+                 [src]="track.preview_url" 
+                 controls 
+                 class="audio-player"
+                 preload="none"
+                 [attr.aria-label]="'Preview of ' + track.name + ' by ' + track.artist">
+          </audio>
+          <div *ngIf="!track.has_preview" class="no-preview">
+            Preview unavailable
+          </div>
+        </div>
+      </div>
+      
+      <button (click)="reset()" class="reset-button">
+        Discover More Music
+      </button>
+    </div>
+  </main>
+</div>
