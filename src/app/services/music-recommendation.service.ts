@@ -3,12 +3,18 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 export interface Track {
+   id: string;
   name: string;
   artist: string;
+  album: string;
   album_art_url: string | null;
   preview_url: string | null;
   has_preview: boolean;
   spotify_url: string | null;
+  duration_ms: number | null;
+  explicit: boolean;
+  popularity: number | null;
+  release_date: string | null;
 }
 
 export interface MusicRecommendationResponse {
@@ -55,4 +61,11 @@ export class MusicRecommendationService {
       { headers: this.getAuthHeaders() }
     );
   }
+  
+  createSpotifyPlaylist(trackIds: string[], playlistName: string): Observable<any> {
+  return this.http.post(`${this.apiUrl}/api/spotify/create-playlist`, {
+    track_ids: trackIds,
+    playlist_name: playlistName
+  }, { headers: this.getAuthHeaders() });
+}
 }

@@ -11,6 +11,7 @@ import {
 import {
   MusicRecommendationResponse,
   MusicRecommendationService,
+  Track,
 } from '../../services/music-recommendation.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService, User } from '../../services/auth.service';
@@ -63,6 +64,9 @@ export class MusicRecommendationComponent implements OnInit {
   currentUser: User | null = null; // To hold the current user information
   lastEmotion = '';
   lastWasImage = false;
+  expandedTrackId: string | null = null;
+  currentlyPlaying: string | null = null;
+  audioElement: HTMLAudioElement | null = null;
   constructor(
     private musicService: MusicRecommendationService,
     private renderer: Renderer2,
@@ -89,7 +93,52 @@ export class MusicRecommendationComponent implements OnInit {
       this.renderer.addClass(document.body, 'light-theme');
     }
   }
+  toggleTrackExpansion(trackId: string): void {
+    this.expandedTrackId = this.expandedTrackId === trackId ? null : trackId;
+  }
+  playPreview(track:Track): void {
+    if (!track.preview_url) return;
 
+    // Stop current audio if playing
+    if (this.audioElement) {
+      this.audioElement.pause();
+      this.audioElement = null;
+    }
+
+    if (this.currentlyPlaying === track.id) {
+      this.currentlyPlaying = null;
+      return;
+    }
+
+    this.audioElement = new Audio(track.preview_url);
+    this.audioElement.play();
+    this.currentlyPlaying = track.id;
+
+    // Auto-stop after 30 seconds
+    this.audioElement.addEventListener('ended', () => {
+      this.currentlyPlaying = null;
+      this.audioElement = null;
+    });
+  }
+  formatDuration(ms: number): string {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  async saveAsPlaylist(): Promise<void> {
+    if (!this.results?.tracks) return;
+
+    const trackIds = this.results.tracks.map(t => t.id);
+    const playlistName = `MoodTune - ${this.results.emotion} Mix`;
+
+    try {
+      await this.musicService.createSpotifyPlaylist(trackIds, playlistName).toPromise();
+      // Show success message
+    } catch (error) {
+      console.error('Failed to create playlist:', error);
+    }
+  }
   onFileSelected(event: any): void {
     const file: File = event.target.files[0];
     if (!file) return;
@@ -112,7 +161,7 @@ export class MusicRecommendationComponent implements OnInit {
     this.lastWasImage = true;
   }
 
-  onTextSearch(mood: string,offset=0): void {
+  onTextSearch(mood: string, offset = 0): void {
     if (!mood || mood.trim() === '') {
       this.errorMessage = 'Please enter a mood or feeling to search for music.';
       return;
@@ -211,5 +260,13 @@ export class MusicRecommendationComponent implements OnInit {
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  playAll(): void {
+    // Implement logic to play all tracks in the results
+    if (this.results && this.results.tracks && this.results.tracks.length > 0) {
+      // Example: play the preview of the first track, or implement your own logic
+      this.playPreview(this.results.tracks[0]);
+    }
   }
 }

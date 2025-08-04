@@ -1,20 +1,18 @@
 <div class="container">
-  <!-- Theme Toggle (stays the same) -->
+  <!-- Theme Toggle -->
   <div class="theme-toggle-container">
     <label class="theme-switch">
-      <input type="checkbox" [checked]="!isDarkMode" (change)="toggleTheme()" />
+      <input type="checkbox" [checked]="!isDarkMode" (change)="toggleTheme()">
       <span class="slider"></span>
     </label>
   </div>
 
-  <!-- USER HEADER + LOGOUT  -->
+  <!-- User Header -->
   <div class="user-header" *ngIf="currentUser">
     <div class="user-info">
-      <img
-        class="user-avatar"
-        [src]="currentUser.avatar_url || '/assets/default-avatar.png'"
-        [alt]="currentUser.full_name || currentUser.username"
-      />
+      <img class="user-avatar"
+           [src]="currentUser.avatar_url || '/assets/default-avatar.png'"
+           [alt]="currentUser.full_name || currentUser.username">
       <div class="user-details">
         <h3>{{ currentUser.full_name || currentUser.username }}</h3>
         <p>{{ currentUser.email }}</p>
@@ -22,136 +20,205 @@
     </div>
     <button class="logout-btn" (click)="logout()">
       <svg viewBox="0 0 24 24" fill="currentColor">
-        <path
-          d="M16 17v-3H9v-4h7V7l5 5-5 5M14 2a2 2 0 012 2v2h-2V4H4v16h10v-2h2v2a2 2 0 01-2 2H4a2 2 0 01-2-2V4a2 2 0 012-2h10z"
-        />
+        <path d="M16 17v-3H9v-4h7V7l5 5-5 5M14 2a2 2 0 012 2v2h-2V4H4v16h10v-2h2v2a2 2 0 01-2 2H4a2 2 0 01-2-2V4a2 2 0 012-2h10z"/>
       </svg>
       Logout
     </button>
   </div>
 
-  <!-- HEADLINE -->
+  <!-- Main Header -->
   <header>
     <h1>MoodTune</h1>
-    <p>
-      Discover music that matches your emotions through AI-powered mood
-      detection.
-    </p>
+    <p>Discover music that matches your emotions through AI-powered mood detection.</p>
   </header>
 
-  <!-- INPUT CARDS (unchanged except file input moved outside label) -->
-  <div class="input-container">
-    <!-- Image -->
+  <!-- Input Cards (Show only when no results) -->
+  <div class="input-container" *ngIf="!results && !isLoading">
+    <!-- Image Analysis Card -->
     <div class="input-card">
       <h3>Image Analysis</h3>
-      <p>Upload a photo and let our AI detect your emotions.</p>
-      <input
-        id="file-upload"
-        type="file"
-        accept="image/*"
-        (change)="onFileSelected($event)"
-        hidden
-      />
+      <p>Upload a photo and let our AI detect your emotions to curate the perfect playlist for your mood.</p>
+      <input id="file-upload" type="file" accept="image/*" (change)="onFileSelected($event)" style="display: none;">
       <label class="upload-button" for="file-upload">
         <svg viewBox="0 0 24 24" fill="currentColor">
-          <path
-            d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2Z"
-          />
+          <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2Z" />
         </svg>
         Choose Image
       </label>
     </div>
 
-    <!-- Text -->
+    <!-- Text Description Card -->
     <div class="input-card">
       <h3>Text Description</h3>
-      <p>Describe your current mood or the vibe you want.</p>
-      <form
-        class="text-search-form"
-        (submit)="$event.preventDefault(); onTextSearch(moodInput.value)"
-      >
-        <input
-          #moodInput
-          class="mood-input"
-          placeholder="e.g., happy, sad, energetic"
-          (focus)="onInputFocus($event)"
-          (blur)="onInputBlur($event)"
-        />
+      <p>Describe your current mood or the vibe you're looking for in a few words.</p>
+      <form class="text-search-form" (submit)="$event.preventDefault(); onTextSearch(moodInput.value)">
+        <input #moodInput class="mood-input"
+               type="text"
+               placeholder="e.g., happy, sad, energetic, calm..."
+               (focus)="onInputFocus($event)"
+               (blur)="onInputBlur($event)">
         <button type="submit" class="search-button">Search</button>
       </form>
     </div>
   </div>
 
-  <!-- STATES -->
-  <div *ngIf="isLoading" class="state-indicator">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="state-indicator" [@fadeInOut]>
     <div class="spinner"></div>
-    <p>Analyzing your mood…</p>
+    <p>Analyzing your mood and finding the perfect tracks...</p>
   </div>
 
-  <div *ngIf="errorMessage && !isLoading" class="state-indicator error-message">
+  <!-- Error Message -->
+  <div *ngIf="errorMessage && !isLoading" class="state-indicator error-message" [@fadeInOut]>
     <p>{{ errorMessage }}</p>
     <button class="reset-button" (click)="reset()">Try Again</button>
   </div>
 
-  <!-- RESULTS -->
+  <!-- Results Section - Spotify-like Interface -->
   <div *ngIf="results && !isLoading" class="results-section" [@fadeInOut]>
-    <h2>
-      We detected you're feeling
-      <span class="emotion">{{ results.emotion }}</span>
-    </h2>
-    <p class="results-description">Enjoy these tracks:</p>
-    <!-- place inside the results-section, under the “Enjoy these tracks:” line -->
-    <button class="refresh-btn" (click)="refreshTracks()">
-      <svg viewBox="0 0 24 24" fill="currentColor">
-        <path
-          d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6a6 6 0 01-6 6 6 6 0 01-5.66-4H4.26A8.997 8.997 0 0012 21a9 9 0 000-18z"
-        />
-      </svg>
-      Refresh songs
-    </button>
-
-    <!-- 5-COLUMN GRID -->
-    <div class="track-grid" [@staggerIn]>
-      <div
-        class="track-card"
-        *ngFor="let track of results.tracks; let i = index"
-        [style.animation-delay.ms]="i * 80"
-      >
-        <div class="album-art-container">
-          <img
-            class="album-art"
-            [src]="track.album_art_url || '/assets/default-album.png'"
-            [alt]="track.name"
-            loading="lazy"
-          />
-        </div>
-
-        <h4 class="track-name" [title]="track.name">{{ track.name }}</h4>
-        <p class="track-artist" [title]="track.artist">{{ track.artist }}</p>
-
-        <div class="track-actions">
-          <audio
-            *ngIf="track.has_preview"
-            class="audio-player"
-            [src]="track.preview_url"
-            controls
-          ></audio>
-          <span *ngIf="!track.has_preview" class="no-preview"
-            >Preview unavailable</span
-          >
-
-          <a
-            *ngIf="track.spotify_url"
-            class="spotify-link"
-            [href]="track.spotify_url"
-            target="_blank"
-          >
-            Spotify
-          </a>
+    <!-- Playlist Header -->
+    <div class="playlist-header">
+      <div class="playlist-cover">
+        <img class="cover-image"
+             [src]="results.tracks[0].album_art_url || '/assets/default-album.png'"
+             [alt]="'Playlist Cover'">
+        <button class="play-all-btn" (click)="playAll()">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8,5.14V19.14L19,12.14L8,5.14Z" />
+          </svg>
+        </button>
+      </div>
+      
+      <div class="playlist-info">
+        <span class="playlist-type">Mood Playlist</span>
+        <h1>{{ results.emotion }} Mix</h1>
+        <p class="playlist-description">Curated tracks matching your {{ results.emotion.toLowerCase() }} mood</p>
+        <div class="playlist-stats">
+          <span>{{ results.tracks.length }} songs</span>
+          <button class="save-playlist-btn" (click)="saveAsPlaylist()">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+            </svg>
+            Save to Spotify
+          </button>
         </div>
       </div>
     </div>
 
-    <button class="reset-button" (click)="reset()">New Search</button>
+    <!-- Track List Container -->
+    <div class="track-list-container">
+      <div class="track-list-header">
+        <div class="col-index">#</div>
+        <div class="col-title">Title</div>
+        <div class="col-album">Album</div>
+        <div class="col-duration">
+          <svg viewBox="0 0 24 24" width="16" fill="currentColor">
+            <path d="M12,20A8,8 0 1,1 20,12A8,8 0 0,1 12,20M12,3A9,9 0 1,0 21,12A9,9 0 0,0 12,3M12.5,7H11V13L16.25,16.15L17,14.92L12.5,12.25V7Z" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Track List -->
+      <div class="track-list" [@staggerIn]>
+        <div *ngFor="let track of results.tracks; let i = index" 
+             class="track-item"
+             [class.expanded]="expandedTrackId === track.id"
+             [class.playing]="currentlyPlaying === track.id">
+          
+          <!-- Main Track Row -->
+          <div class="track-main" (click)="toggleTrackExpansion(track.id)">
+            <div class="col-index">
+              <span class="track-number">{{ i + 1 }}</span>
+              <button *ngIf="track.has_preview" 
+                      class="play-btn" 
+                      (click)="$event.stopPropagation(); playPreview(track)">
+                <svg *ngIf="currentlyPlaying !== track.id" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8,5.14V19.14L19,12.14L8,5.14Z" />
+                </svg>
+                <svg *ngIf="currentlyPlaying === track.id" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M14,19H18V5H14M6,19H10V5H6V19Z" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="col-title">
+              <img [src]="track.album_art_url || '/assets/default-album.png'" 
+                   [alt]="track.name" 
+                   class="track-image">
+              <div class="track-info">
+                <div class="track-name">
+                  {{ track.name }}
+                  <span *ngIf="track.explicit" class="explicit-badge">E</span>
+                </div>
+                <div class="track-artist">{{ track.artist }}</div>
+              </div>
+            </div>
+
+            <div class="col-album">{{ track.album }}</div>
+            
+            <div class="col-duration">
+              <span *ngIf="track.duration_ms">{{ formatDuration(track.duration_ms) }}</span>
+              <button class="more-btn">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Expanded Track Details -->
+          <div *ngIf="expandedTrackId === track.id" class="track-expanded">
+            <div class="track-details">
+              <div class="detail-item">
+                <span class="label">Popularity:</span>
+                <div class="popularity-bar">
+                  <div class="popularity-fill" [style.width.%]="track.popularity || 0"></div>
+                </div>
+                <span>{{ track.popularity || 0 }}%</span>
+              </div>
+              
+              <div class="detail-item" *ngIf="track.release_date">
+                <span class="label">Released:</span>
+                <span>{{ track.release_date | date:'MMM d, y' }}</span>
+              </div>
+
+              <div class="track-actions">
+                <a *ngIf="track.spotify_url" 
+                   [href]="track.spotify_url" 
+                   target="_blank" 
+                   class="spotify-btn">
+                  Open in Spotify
+                </a>
+                <button class="add-to-queue-btn">Add to Queue</button>
+              </div>
+            </div>
+
+            <!-- Preview Player -->
+            <div *ngIf="track.has_preview" class="preview-player">
+              <audio [src]="track.preview_url" controls class="audio-controls">
+                Your browser does not support the audio element.
+              </audio>
+              <p class="preview-note">30-second preview</p>
+            </div>
+
+            <div *ngIf="!track.has_preview" class="no-preview">
+              <p>Preview not available for this track</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button class="refresh-btn" (click)="refreshTracks()">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6a6 6 0 01-6 6 6 6 0 01-5.66-4H4.26A8.997 8.997 0 0012 21a9 9 0 000-18z"/>
+        </svg>
+        Refresh Songs
+      </button>
+      
+      <button class="reset-button" (click)="reset()">New Search</button>
+    </div>
   </div>
 </div>
