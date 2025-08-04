@@ -1,0 +1,128 @@
+<div class="login-card">
+  <h1>Welcome to MoodTune</h1>
+  <p>Sign in to discover music that matches your mood</p>
+
+  <!-- Tab Navigation -->
+  <div class="tab-nav">
+    <button [class]="isLoginMode ? 'tab-btn active' : 'tab-btn'" 
+            (click)="setMode('login')">Login</button>
+    <button [class]="!isLoginMode ? 'tab-btn active' : 'tab-btn'" 
+            (click)="setMode('register')">Register</button>
+  </div>
+
+  <!-- LOGIN FORM -->
+  <form *ngIf="isLoginMode" class="auth-form" (ngSubmit)="onLogin()" #loginForm="ngForm">
+    <div class="form-group">
+      <input type="email" 
+             [(ngModel)]="loginData.email" 
+             name="email" 
+             placeholder="Email address"
+             class="form-input"
+             required
+             email
+             #email="ngModel">
+      <div *ngIf="email.invalid && email.touched" class="field-error">
+        Please enter a valid email
+      </div>
+    </div>
+
+    <div class="form-group">
+      <input type="password" 
+             [(ngModel)]="loginData.password" 
+             name="password" 
+             placeholder="Password"
+             class="form-input"
+             required
+             minlength="6"
+             #password="ngModel">
+      <div *ngIf="password.invalid && password.touched" class="field-error">
+        Password must be at least 6 characters
+      </div>
+    </div>
+
+    <button type="submit" 
+            class="auth-btn primary"
+            [disabled]="loginForm.invalid || isLoading">
+      {{ isLoading ? 'Signing in...' : 'Sign In' }}
+    </button>
+  </form>
+
+  <!-- REGISTER FORM -->
+  <form *ngIf="!isLoginMode" class="auth-form" (ngSubmit)="onRegister()" #registerForm="ngForm">
+    <div class="form-group">
+      <input type="text" 
+             [(ngModel)]="registerData.full_name" 
+             name="fullName" 
+             placeholder="Full Name"
+             class="form-input">
+    </div>
+
+    <div class="form-group">
+      <input type="text" 
+             [(ngModel)]="registerData.username" 
+             name="username" 
+             placeholder="Username"
+             class="form-input"
+             required
+             #username="ngModel">
+      <div *ngIf="username.invalid && username.touched" class="field-error">
+        Username is required
+      </div>
+    </div>
+
+    <div class="form-group">
+      <input type="email" 
+             [(ngModel)]="registerData.email" 
+             name="regEmail" 
+             placeholder="Email address"
+             class="form-input"
+             required
+             email
+             #regEmail="ngModel">
+      <div *ngIf="regEmail.invalid && regEmail.touched" class="field-error">
+        Please enter a valid email
+      </div>
+    </div>
+
+    <div class="form-group">
+      <input type="password" 
+             [(ngModel)]="registerData.password" 
+             name="regPassword" 
+             placeholder="Password"
+             class="form-input"
+             required
+             minlength="6"
+             #regPassword="ngModel">
+      <div *ngIf="regPassword.invalid && regPassword.touched" class="field-error">
+        Password must be at least 6 characters
+      </div>
+    </div>
+
+    <button type="submit" 
+            class="auth-btn primary"
+            [disabled]="registerForm.invalid || isLoading">
+      {{ isLoading ? 'Creating account...' : 'Create Account' }}
+    </button>
+  </form>
+
+  <!-- DIVIDER -->
+  <div class="divider">
+    <span>or</span>
+  </div>
+
+  <!-- GOOGLE SIGN IN -->
+  <div class="google-btn-wrapper">
+    <div id="google-signin-button"></div>
+  </div>
+
+  <!-- LOADING STATE -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <span>Please wait...</span>
+  </div>
+
+  <!-- ERROR MESSAGE -->
+  <div *ngIf="errorMessage" class="error-msg">
+    {{ errorMessage }}
+  </div>
+</div>

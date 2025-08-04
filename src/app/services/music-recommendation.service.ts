@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -13,8 +13,11 @@ export interface Track {
 
 export interface MusicRecommendationResponse {
   emotion: string;
+  confidence?: number;
   tracks: Track[];
+  mood_entry_id?: string;
 }
+
 @Injectable({
   providedIn: 'root',
 })
@@ -23,14 +26,33 @@ export class MusicRecommendationService {
 
   constructor(private http: HttpClient) {}
 
+  private getAuthHeaders(): HttpHeaders {
+    const token = localStorage.getItem('access_token');
+    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
+  }
+
   getRecsByImage(imageFile: File): Observable<MusicRecommendationResponse> {
     const formData = new FormData();
     formData.append('file', imageFile, imageFile.name);
-    // The endpoint for image uploads is /by-image
-    return this.http.post<MusicRecommendationResponse>(`${this.apiUrl}/by-image`, formData);
+    
+    return this.http.post<MusicRecommendationResponse>(
+      `${this.apiUrl}/api/recommendations/by-image`, 
+      formData,
+      { headers: this.getAuthHeaders() }
+    );
   }
 
   getRecsByText(emotion: string): Observable<MusicRecommendationResponse> {
-    return this.http.get<MusicRecommendationResponse>(`${this.apiUrl}/by-text/${emotion}`);
+    return this.http.get<MusicRecommendationResponse>(
+      `${this.apiUrl}/api/recommendations/by-text/${emotion}`,
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
+  getMoodHistory(days: number = 30): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/api/analytics/mood-history?days=${days}`,
+      { headers: this.getAuthHeaders() }
+    );
   }
 }
