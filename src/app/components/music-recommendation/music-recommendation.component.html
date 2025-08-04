@@ -2,7 +2,7 @@
   <!-- Theme Toggle (stays the same) -->
   <div class="theme-toggle-container">
     <label class="theme-switch">
-      <input type="checkbox" [checked]="!isDarkMode" (change)="toggleTheme()">
+      <input type="checkbox" [checked]="!isDarkMode" (change)="toggleTheme()" />
       <span class="slider"></span>
     </label>
   </div>
@@ -10,9 +10,11 @@
   <!-- USER HEADER + LOGOUT  -->
   <div class="user-header" *ngIf="currentUser">
     <div class="user-info">
-      <img class="user-avatar"
-           [src]="currentUser.avatar_url || '/assets/default-avatar.png'"
-           [alt]="currentUser.full_name || currentUser.username">
+      <img
+        class="user-avatar"
+        [src]="currentUser.avatar_url || '/assets/default-avatar.png'"
+        [alt]="currentUser.full_name || currentUser.username"
+      />
       <div class="user-details">
         <h3>{{ currentUser.full_name || currentUser.username }}</h3>
         <p>{{ currentUser.email }}</p>
@@ -20,7 +22,9 @@
     </div>
     <button class="logout-btn" (click)="logout()">
       <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M16 17v-3H9v-4h7V7l5 5-5 5M14 2a2 2 0 012 2v2h-2V4H4v16h10v-2h2v2a2 2 0 01-2 2H4a2 2 0 01-2-2V4a2 2 0 012-2h10z"/>
+        <path
+          d="M16 17v-3H9v-4h7V7l5 5-5 5M14 2a2 2 0 012 2v2h-2V4H4v16h10v-2h2v2a2 2 0 01-2 2H4a2 2 0 01-2-2V4a2 2 0 012-2h10z"
+        />
       </svg>
       Logout
     </button>
@@ -29,7 +33,10 @@
   <!-- HEADLINE -->
   <header>
     <h1>MoodTune</h1>
-    <p>Discover music that matches your emotions through AI-powered mood detection.</p>
+    <p>
+      Discover music that matches your emotions through AI-powered mood
+      detection.
+    </p>
   </header>
 
   <!-- INPUT CARDS (unchanged except file input moved outside label) -->
@@ -38,10 +45,18 @@
     <div class="input-card">
       <h3>Image Analysis</h3>
       <p>Upload a photo and let our AI detect your emotions.</p>
-      <input id="file-upload" type="file" accept="image/*" (change)="onFileSelected($event)" hidden>
+      <input
+        id="file-upload"
+        type="file"
+        accept="image/*"
+        (change)="onFileSelected($event)"
+        hidden
+      />
       <label class="upload-button" for="file-upload">
         <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2Z" />
+          <path
+            d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2Z"
+          />
         </svg>
         Choose Image
       </label>
@@ -51,11 +66,17 @@
     <div class="input-card">
       <h3>Text Description</h3>
       <p>Describe your current mood or the vibe you want.</p>
-      <form class="text-search-form" (submit)="$event.preventDefault(); onTextSearch(moodInput.value)">
-        <input #moodInput class="mood-input"
-               placeholder="e.g., happy, sad, energetic"
-               (focus)="onInputFocus($event)"
-               (blur)="onInputBlur($event)">
+      <form
+        class="text-search-form"
+        (submit)="$event.preventDefault(); onTextSearch(moodInput.value)"
+      >
+        <input
+          #moodInput
+          class="mood-input"
+          placeholder="e.g., happy, sad, energetic"
+          (focus)="onInputFocus($event)"
+          (blur)="onInputBlur($event)"
+        />
         <button type="submit" class="search-button">Search</button>
       </form>
     </div>
@@ -74,33 +95,58 @@
 
   <!-- RESULTS -->
   <div *ngIf="results && !isLoading" class="results-section" [@fadeInOut]>
-    <h2>We detected you're feeling <span class="emotion">{{ results.emotion }}</span></h2>
+    <h2>
+      We detected you're feeling
+      <span class="emotion">{{ results.emotion }}</span>
+    </h2>
     <p class="results-description">Enjoy these tracks:</p>
+    <!-- place inside the results-section, under the “Enjoy these tracks:” line -->
+    <button class="refresh-btn" (click)="refreshTracks()">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path
+          d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6a6 6 0 01-6 6 6 6 0 01-5.66-4H4.26A8.997 8.997 0 0012 21a9 9 0 000-18z"
+        />
+      </svg>
+      Refresh songs
+    </button>
 
     <!-- 5-COLUMN GRID -->
     <div class="track-grid" [@staggerIn]>
-      <div class="track-card"
-           *ngFor="let track of results.tracks; let i = index"
-           [style.animation-delay.ms]="i * 80">
+      <div
+        class="track-card"
+        *ngFor="let track of results.tracks; let i = index"
+        [style.animation-delay.ms]="i * 80"
+      >
         <div class="album-art-container">
-          <img class="album-art"
-               [src]="track.album_art_url || '/assets/default-album.png'"
-               [alt]="track.name"
-               loading="lazy">
+          <img
+            class="album-art"
+            [src]="track.album_art_url || '/assets/default-album.png'"
+            [alt]="track.name"
+            loading="lazy"
+          />
         </div>
 
         <h4 class="track-name" [title]="track.name">{{ track.name }}</h4>
         <p class="track-artist" [title]="track.artist">{{ track.artist }}</p>
 
         <div class="track-actions">
-          <audio *ngIf="track.has_preview" class="audio-player" [src]="track.preview_url" controls></audio>
-          <span *ngIf="!track.has_preview" class="no-preview">Preview unavailable</span>
+          <audio
+            *ngIf="track.has_preview"
+            class="audio-player"
+            [src]="track.preview_url"
+            controls
+          ></audio>
+          <span *ngIf="!track.has_preview" class="no-preview"
+            >Preview unavailable</span
+          >
 
-          <a *ngIf="track.spotify_url"
-             class="spotify-link"
-             [href]="track.spotify_url"
-             target="_blank">
-             Spotify
+          <a
+            *ngIf="track.spotify_url"
+            class="spotify-link"
+            [href]="track.spotify_url"
+            target="_blank"
+          >
+            Spotify
           </a>
         </div>
       </div>

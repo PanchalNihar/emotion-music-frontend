@@ -61,22 +61,24 @@ export class MusicRecommendationComponent implements OnInit {
   errorMessage: string | null = null;
   isDarkMode = true; // Default to dark mode for Spotify-like experience
   currentUser: User | null = null; // To hold the current user information
+  lastEmotion = '';
+  lastWasImage = false;
   constructor(
     private musicService: MusicRecommendationService,
     private renderer: Renderer2,
     private authService: AuthService,
-    private router:Router
+    private router: Router
   ) {}
 
   ngOnInit(): void {
     // Set initial dark theme
     this.renderer.removeClass(document.body, 'light-theme');
-    this.authService.currentUser$.subscribe(user=>{
+    this.authService.currentUser$.subscribe((user) => {
       this.currentUser = user;
-      if(!user){
+      if (!user) {
         this.router.navigate(['/login']);
       }
-    })
+    });
   }
 
   toggleTheme(): void {
@@ -107,9 +109,10 @@ export class MusicRecommendationComponent implements OnInit {
 
     this.startLoading();
     this.musicService.getRecsByImage(file).subscribe(this.handleResponse());
+    this.lastWasImage = true;
   }
 
-  onTextSearch(mood: string): void {
+  onTextSearch(mood: string,offset=0): void {
     if (!mood || mood.trim() === '') {
       this.errorMessage = 'Please enter a mood or feeling to search for music.';
       return;
@@ -124,7 +127,11 @@ export class MusicRecommendationComponent implements OnInit {
     }
 
     this.startLoading();
-    this.musicService.getRecsByText(cleanMood).subscribe(this.handleResponse());
+    this.lastWasImage = false;
+    this.lastEmotion = cleanMood;
+    this.musicService
+      .getRecsByText(this.lastEmotion, offset)
+      .subscribe(this.handleResponse());
   }
 
   private startLoading(): void {
@@ -138,7 +145,7 @@ export class MusicRecommendationComponent implements OnInit {
       next: (response: MusicRecommendationResponse) => {
         this.results = response;
         this.isLoading = false;
-
+        this.lastEmotion = response.emotion;
         // Validate response data
         if (!response.tracks || response.tracks.length === 0) {
           this.errorMessage =
@@ -181,7 +188,16 @@ export class MusicRecommendationComponent implements OnInit {
       fileInput.value = '';
     }
   }
-
+  refreshTracks(): void {
+    if (!this.lastEmotion) {
+      return;
+    }
+    this.startLoading();
+    const offset = Math.floor(Math.random() * 800);
+    this.musicService
+      .getRecsByText(this.lastEmotion, offset)
+      .subscribe(this.handleResponse());
+  }
   // Utility method for better user experience
   onInputFocus(event: Event): void {
     const target = event.target as HTMLElement;
@@ -192,8 +208,8 @@ export class MusicRecommendationComponent implements OnInit {
     const target = event.target as HTMLElement;
     target.parentElement?.classList.remove('focused');
   }
-  logout() :void{
+  logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
-  } 
+  }
 }

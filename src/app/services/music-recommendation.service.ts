@@ -42,9 +42,9 @@ export class MusicRecommendationService {
     );
   }
 
-  getRecsByText(emotion: string): Observable<MusicRecommendationResponse> {
+  getRecsByText(emotion: string,offset=0): Observable<MusicRecommendationResponse> {
     return this.http.get<MusicRecommendationResponse>(
-      `${this.apiUrl}/api/recommendations/by-text/${emotion}`,
+      `${this.apiUrl}/api/recommendations/by-text/${emotion}?offset=${offset}`,
       { headers: this.getAuthHeaders() }
     );
   }
