@@ -1,0 +1,12 @@
+<div class="theme-toggle-wrapper">
+  <span class="theme-icon" [class.active]="isDarkMode">🌙</span>
+  <label class="theme-switch">
+    <input
+      type="checkbox"
+      [checked]="isDarkMode"
+      (change)="themeChange.emit()"
+    />
+    <span class="slider"></span>
+  </label>
+  <span class="theme-icon" [class.active]="!isDarkMode">☀️</span>
+</div>

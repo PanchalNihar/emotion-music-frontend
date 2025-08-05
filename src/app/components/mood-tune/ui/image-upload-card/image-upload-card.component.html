@@ -1,0 +1,32 @@
+<div class="input-card">
+      <div class="card-icon">📸</div>
+      <h3>Image Analysis</h3>
+      <p>Upload a photo and let our AI detect your emotions to curate the perfect playlist.</p>
+      
+      <div class="upload-area" [class.has-image]="uploadedImageData">
+        <div *ngIf="!uploadedImageData" class="upload-placeholder">
+          <input id="file-upload" type="file" accept="image/*" (change)="onFileSelected($event)" style="display: none;">
+          <label class="upload-button" for="file-upload">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2Z" />
+            </svg>
+            Choose Image
+          </label>
+        </div>
+        
+        <div *ngIf="uploadedImageData" class="image-preview">
+          <img [src]="uploadedImageData" alt="Uploaded image" class="preview-image">
+          <div class="image-info">
+            <div class="detected-mood" *ngIf="detectedMood">
+              <span class="mood-label">Detected: {{ detectedMood }}</span>
+              <div class="confidence-bar" *ngIf="moodConfidence">
+                <div class="confidence-fill" [style.width.%]="moodConfidence * 100"></div>
+              </div>
+            </div>
+            <button class="change-image-btn" (click)="clearImage.emit()">
+              Change Image
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>

@@ -1,0 +1,59 @@
+.loading-state {
+  padding: 4rem 2rem;
+  text-align: center;
+  animation: fadeIn 0.5s ease;
+}
+
+.loading-content h3 {
+  color: var(--text-primary);
+  margin: 1rem 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.loading-content p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.loading-animation {
+  margin-bottom: 2rem;
+}
+
+.music-notes {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.note {
+  font-size: 2rem;
+  color: var(--accent-primary);
+  animation: bounce 1.4s ease-in-out infinite;
+}
+
+.note-1 {
+  animation-delay: 0s;
+}
+
+.note-2 {
+  animation-delay: 0.2s;
+}
+
+.note-3 {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

@@ -1,0 +1,35 @@
+ <div class="playlist-header" [attr.data-mood]="result.emotion.toLowerCase()">
+      <div class="playlist-cover">
+        <img class="cover-image"
+             [src]="result.tracks[0].album_art_url || '/assets/default-album.png'"
+             [alt]="'Playlist Cover'">
+        <button class="play-all-btn" (click)="playAll.emit()">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8,5.14V19.14L19,12.14L8,5.14Z" />
+          </svg>
+        </button>
+        <div class="mood-indicator">
+          <span class="mood-emoji">{{ getMoodEmoji(result.emotion) }}</span>
+        </div>
+      </div>
+      
+      <div class="playlist-info">
+        <span class="playlist-type">Mood Playlist</span>
+        <h1>{{ result.emotion }} Mix</h1>
+        <p class="playlist-description">
+          {{ getPlaylistDescription(result.emotion) }}
+        </p>
+        <div class="playlist-stats">
+          <span>{{ result.tracks.length }} songs</span>
+          <div class="confidence-display" *ngIf="result.confidence">
+            <span>{{ (result.confidence * 100) | number:'1.0-0' }}% confidence</span>
+          </div>
+          <button class="save-playlist-btn" (click)="savePlaylist.emit()">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+            </svg>
+            Save to Spotify
+          </button>
+        </div>
+      </div>
+    </div>

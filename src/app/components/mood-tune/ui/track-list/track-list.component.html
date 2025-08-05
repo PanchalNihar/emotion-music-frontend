@@ -1,0 +1,98 @@
+ <div class="track-list-container">
+      <div class="track-list-header">
+        <div class="col-index">#</div>
+        <div class="col-title">Title</div>
+        <div class="col-album">Album</div>
+        <div class="col-duration">
+          <svg viewBox="0 0 24 24" width="16" fill="currentColor">
+            <path d="M12,20A8,8 0 1,1 20,12A8,8 0 0,1 12,20M12,3A9,9 0 1,0 21,12A9,9 0 0,0 12,3M12.5,7H11V13L16.25,16.15L17,14.92L12.5,12.25V7Z" />
+          </svg>
+        </div>
+      </div>
+
+      <div class="track-list">
+        <div *ngFor="let track of tracks; let i = index" 
+             class="track-item"
+             [class.expanded]="expandedTrackId === track.id"
+             [class.playing]="currentlyPlaying === track.id">
+          
+          <div class="track-main" (click)="toggleExpansion.emit(track.id)">
+            <div class="col-index">
+              <span class="track-number">{{ i + 1 }}</span>
+              <button *ngIf="track.has_preview" 
+                      class="play-btn" 
+                      (click)="$event.stopPropagation(); playPreview.emit(track)">
+                <svg *ngIf="currentlyPlaying !== track.id" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8,5.14V19.14L19,12.14L8,5.14Z" />
+                </svg>
+                <svg *ngIf="currentlyPlaying === track.id" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M14,19H18V5H14M6,19H10V5H6V19Z" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="col-title">
+              <img [src]="track.album_art_url || '/assets/default-album.png'" 
+                   [alt]="track.name" 
+                   class="track-image">
+              <div class="track-info">
+                <div class="track-name">
+                  {{ track.name }}
+                  <span *ngIf="track.explicit" class="explicit-badge">E</span>
+                </div>
+                <div class="track-artist">{{ track.artist }}</div>
+              </div>
+            </div>
+
+            <div class="col-album">{{ track.album }}</div>
+            
+            <div class="col-duration">
+              <span *ngIf="track.duration_ms">{{ formatDuration(track.duration_ms) }}</span>
+              <button class="more-btn">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="expandedTrackId === track.id" class="track-expanded">
+            <div class="track-details">
+              <div class="detail-item">
+                <span class="label">Popularity:</span>
+                <div class="popularity-bar">
+                  <div class="popularity-fill" [style.width.%]="track.popularity || 0"></div>
+                </div>
+                <span>{{ track.popularity || 0 }}%</span>
+              </div>
+              
+              <div class="detail-item" *ngIf="track.release_date">
+                <span class="label">Released:</span>
+                <span>{{ track.release_date | date:'MMM d, y' }}</span>
+              </div>
+
+              <div class="track-actions">
+                <a *ngIf="track.spotify_url" 
+                   [href]="track.spotify_url" 
+                   target="_blank" 
+                   class="spotify-btn">
+                  Open in Spotify
+                </a>
+                <button class="add-to-queue-btn">Add to Queue</button>
+              </div>
+            </div>
+
+            <div *ngIf="track.has_preview" class="preview-player">
+              <audio [src]="track.preview_url" controls class="audio-controls">
+                Your browser does not support the audio element.
+              </audio>
+              <p class="preview-note">30-second preview</p>
+            </div>
+
+            <div *ngIf="!track.has_preview" class="no-preview">
+              <p>Preview not available for this track</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
