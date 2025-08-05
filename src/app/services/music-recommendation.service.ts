@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 export interface Track {
-   id: string;
+  id: string;
   name: string;
   artist: string;
   album: string;
