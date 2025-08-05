@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, Renderer2 } from '@angular/core';
+import { Component, OnInit, Renderer2, HostListener } from '@angular/core';
 import {
   trigger,
   transition,
@@ -15,7 +15,8 @@ import {
 } from '../../services/music-recommendation.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService, User } from '../../services/auth.service';
-import { Router } from '@angular/router';
+import { Router, RouterLink, RouterModule } from '@angular/router';
+
 @Component({
   selector: 'app-music-recommendation',
   imports: [CommonModule],
@@ -57,16 +58,46 @@ import { Router } from '@angular/router';
   ],
 })
 export class MusicRecommendationComponent implements OnInit {
+  // Core state
   isLoading = false;
   results: MusicRecommendationResponse | null = null;
   errorMessage: string | null = null;
-  isDarkMode = true; // Default to dark mode for Spotify-like experience
-  currentUser: User | null = null; // To hold the current user information
+  isDarkMode = true;
+  currentUser: User | null = null;
   lastEmotion = '';
   lastWasImage = false;
+
+  // Track controls
   expandedTrackId: string | null = null;
   currentlyPlaying: string | null = null;
   audioElement: HTMLAudioElement | null = null;
+
+  // Enhanced UI state
+  isProfileDropdownOpen = false;
+  uploadedImageData: string | null = null;
+  detectedMood: string = '';
+  moodConfidence: number = 0;
+  loadingMessage = 'Analyzing your mood...';
+
+  // Mood suggestions for text input
+  moodSuggestions = [
+    'happy',
+    'sad',
+    'energetic',
+    'calm',
+    'romantic',
+    'angry',
+    'excited',
+    'melancholy',
+    'chill',
+    'upbeat',
+    'gym',
+    'study',
+    'relaxing',
+    'party',
+    'focus',
+  ];
+
   constructor(
     private musicService: MusicRecommendationService,
     private renderer: Renderer2,
@@ -85,6 +116,7 @@ export class MusicRecommendationComponent implements OnInit {
     });
   }
 
+  // Theme management
   toggleTheme(): void {
     this.isDarkMode = !this.isDarkMode;
     if (this.isDarkMode) {
@@ -93,10 +125,144 @@ export class MusicRecommendationComponent implements OnInit {
       this.renderer.addClass(document.body, 'light-theme');
     }
   }
+
+  // Profile dropdown management
+  toggleProfileDropdown(): void {
+    this.isProfileDropdownOpen = !this.isProfileDropdownOpen;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.user-profile-dropdown')) {
+      this.isProfileDropdownOpen = false;
+    }
+  }
+
+  logout(): void {
+    console.log('Logout clicked - function invoked!');
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+
+  viewHistory(): void {
+    this.isProfileDropdownOpen = false;
+    // Navigate to history page or open history modal
+    console.log('View mood history');
+    // Implement: this.router.navigate(['/history']);
+  }
+
+  openPreferences(): void {
+    this.isProfileDropdownOpen = false;
+    // Navigate to preferences page or open preferences modal
+    console.log('Open user preferences');
+    // Implement: this.router.navigate(['/preferences']);
+  }
+
+  // Enhanced file upload with preview
+  onFileSelected(event: any): void {
+    const file: File = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      this.errorMessage = 'Please select a valid image file.';
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      this.errorMessage =
+        'Image file is too large. Please select a file smaller than 10MB.';
+      return;
+    }
+
+    // Show image preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.uploadedImageData = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+
+    this.loadingMessage = 'Analyzing your facial expression...';
+    this.startLoading();
+    this.lastWasImage = true;
+
+    this.musicService.getRecsByImage(file).subscribe({
+      next: (response) => {
+        this.detectedMood = response.emotion;
+        this.moodConfidence = response.confidence || 0;
+        this.handleResponse().next(response);
+      },
+      error: (error) => {
+        this.handleResponse().error(error);
+      },
+    });
+  }
+
+  clearUploadedImage(): void {
+    this.uploadedImageData = null;
+    this.detectedMood = '';
+    this.moodConfidence = 0;
+    // Clear file input
+    const fileInput = document.getElementById(
+      'file-upload'
+    ) as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  }
+
+  // Enhanced text search with form submission
+  onTextSearchSubmit(event: Event, mood: string): void {
+    event.preventDefault();
+    this.onTextSearch(mood);
+  }
+
+  onTextSearch(mood: string, offset = 0): void {
+    if (!mood || mood.trim() === '') {
+      this.errorMessage = 'Please enter a mood or feeling to search for music.';
+      return;
+    }
+
+    const cleanMood = mood.trim().toLowerCase();
+    if (cleanMood.length < 2) {
+      this.errorMessage =
+        'Please enter at least 2 characters to describe your mood.';
+      return;
+    }
+
+    this.loadingMessage = 'Finding tracks for your mood...';
+    this.startLoading();
+    this.lastWasImage = false;
+    this.lastEmotion = cleanMood;
+
+    this.musicService
+      .getRecsByText(this.lastEmotion, offset)
+      .subscribe(this.handleResponse());
+  }
+
+  // Mood suggestion selection
+  selectSuggestion(suggestion: string): void {
+    const input = document.querySelector('.mood-input') as HTMLInputElement;
+    if (input) {
+      input.value = suggestion;
+      this.onTextSearch(suggestion);
+    }
+  }
+
+  onInputChange(event: any): void {
+    // Optional: Add real-time suggestions based on input
+    const value = event.target.value.toLowerCase();
+    // Could implement suggestion filtering here
+  }
+
+  // Track management
   toggleTrackExpansion(trackId: string): void {
     this.expandedTrackId = this.expandedTrackId === trackId ? null : trackId;
   }
-  playPreview(track:Track): void {
+
+  playPreview(track: Track): void {
     if (!track.preview_url) return;
 
     // Stop current audio if playing
@@ -120,69 +286,83 @@ export class MusicRecommendationComponent implements OnInit {
       this.audioElement = null;
     });
   }
+
   formatDuration(ms: number): string {
     const minutes = Math.floor(ms / 60000);
     const seconds = Math.floor((ms % 60000) / 1000);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }
 
+  // Playlist actions
+  playAll(): void {
+    if (this.results && this.results.tracks && this.results.tracks.length > 0) {
+      // Play the first track with preview
+      const firstTrackWithPreview = this.results.tracks.find(
+        (track) => track.has_preview
+      );
+      if (firstTrackWithPreview) {
+        this.playPreview(firstTrackWithPreview);
+      }
+    }
+  }
+
   async saveAsPlaylist(): Promise<void> {
     if (!this.results?.tracks) return;
 
-    const trackIds = this.results.tracks.map(t => t.id);
+    const trackIds = this.results.tracks.map((t) => t.id).filter((id) => id);
     const playlistName = `MoodTune - ${this.results.emotion} Mix`;
 
     try {
-      await this.musicService.createSpotifyPlaylist(trackIds, playlistName).toPromise();
-      // Show success message
+      await this.musicService
+        .createSpotifyPlaylist(trackIds, playlistName)
+        .toPromise();
+      // Show success message (you could add a toast notification here)
+      console.log('Playlist saved successfully!');
     } catch (error) {
       console.error('Failed to create playlist:', error);
+      // Show error message (you could add a toast notification here)
     }
   }
-  onFileSelected(event: any): void {
-    const file: File = event.target.files[0];
-    if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      this.errorMessage = 'Please select a valid image file.';
-      return;
-    }
-
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      this.errorMessage =
-        'Image file is too large. Please select a file smaller than 10MB.';
-      return;
-    }
-
-    this.startLoading();
-    this.musicService.getRecsByImage(file).subscribe(this.handleResponse());
-    this.lastWasImage = true;
+  // Mood-based utilities
+  getMoodEmoji(emotion: string): string {
+    const emojiMap: { [key: string]: string } = {
+      happy: '😊',
+      sad: '😢',
+      angry: '😠',
+      calm: '😌',
+      energetic: '⚡',
+      romantic: '💕',
+      excited: '🤩',
+      neutral: '😐',
+      fearful: '😰',
+      surprised: '😲',
+      disgusted: '🤢',
+    };
+    return emojiMap[emotion.toLowerCase()] || '🎵';
   }
 
-  onTextSearch(mood: string, offset = 0): void {
-    if (!mood || mood.trim() === '') {
-      this.errorMessage = 'Please enter a mood or feeling to search for music.';
-      return;
-    }
-
-    // Clean and validate input
-    const cleanMood = mood.trim().toLowerCase();
-    if (cleanMood.length < 2) {
-      this.errorMessage =
-        'Please enter at least 2 characters to describe your mood.';
-      return;
-    }
-
-    this.startLoading();
-    this.lastWasImage = false;
-    this.lastEmotion = cleanMood;
-    this.musicService
-      .getRecsByText(this.lastEmotion, offset)
-      .subscribe(this.handleResponse());
+  getPlaylistDescription(emotion: string): string {
+    const descriptions: { [key: string]: string } = {
+      happy: 'Uplifting tracks to keep your spirits high and energy flowing',
+      sad: 'Melancholic melodies that understand and embrace your feelings',
+      angry: 'Intense beats to channel your energy and release tension',
+      calm: 'Peaceful sounds to soothe your mind and relax your soul',
+      energetic: 'High-energy anthems to fuel your motivation and drive',
+      romantic: 'Love songs to set the perfect mood for your heart',
+      excited: 'Thrilling beats that match your enthusiasm and joy',
+      neutral: 'Balanced tracks for any moment and any mood',
+      fearful: 'Comforting melodies to ease your worries',
+      surprised: 'Unexpected gems that will delight and amaze',
+      disgusted: 'Cleansing beats to refresh your musical palate',
+    };
+    return (
+      descriptions[emotion.toLowerCase()] ||
+      `Carefully curated tracks matching your ${emotion.toLowerCase()} vibe`
+    );
   }
 
+  // Core state management
   private startLoading(): void {
     this.isLoading = true;
     this.results = null;
@@ -195,6 +375,7 @@ export class MusicRecommendationComponent implements OnInit {
         this.results = response;
         this.isLoading = false;
         this.lastEmotion = response.emotion;
+
         // Validate response data
         if (!response.tracks || response.tracks.length === 0) {
           this.errorMessage =
@@ -228,26 +409,31 @@ export class MusicRecommendationComponent implements OnInit {
     this.results = null;
     this.isLoading = false;
     this.errorMessage = null;
+    this.clearUploadedImage();
+    this.detectedMood = '';
+    this.moodConfidence = 0;
 
-    // Clear file input
-    const fileInput = document.getElementById(
-      'file-upload'
-    ) as HTMLInputElement;
-    if (fileInput) {
-      fileInput.value = '';
+    // Stop any playing audio
+    if (this.audioElement) {
+      this.audioElement.pause();
+      this.audioElement = null;
+      this.currentlyPlaying = null;
     }
   }
+
   refreshTracks(): void {
-    if (!this.lastEmotion) {
-      return;
-    }
+    if (!this.lastEmotion) return;
+
+    this.loadingMessage = 'Finding new tracks...';
     this.startLoading();
     const offset = Math.floor(Math.random() * 800);
+
     this.musicService
       .getRecsByText(this.lastEmotion, offset)
       .subscribe(this.handleResponse());
   }
-  // Utility method for better user experience
+
+  // Utility methods for better UX
   onInputFocus(event: Event): void {
     const target = event.target as HTMLElement;
     target.parentElement?.classList.add('focused');
@@ -257,16 +443,12 @@ export class MusicRecommendationComponent implements OnInit {
     const target = event.target as HTMLElement;
     target.parentElement?.classList.remove('focused');
   }
-  logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/login']);
-  }
 
-  playAll(): void {
-    // Implement logic to play all tracks in the results
-    if (this.results && this.results.tracks && this.results.tracks.length > 0) {
-      // Example: play the preview of the first track, or implement your own logic
-      this.playPreview(this.results.tracks[0]);
+  // Cleanup on component destroy
+  ngOnDestroy(): void {
+    if (this.audioElement) {
+      this.audioElement.pause();
+      this.audioElement = null;
     }
   }
 }

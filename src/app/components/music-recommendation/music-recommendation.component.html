@@ -1,30 +1,67 @@
 <div class="container">
-  <!-- Theme Toggle -->
+  <!-- Theme Toggle with Icons -->
   <div class="theme-toggle-container">
-    <label class="theme-switch">
-      <input type="checkbox" [checked]="!isDarkMode" (change)="toggleTheme()">
-      <span class="slider"></span>
-    </label>
+    <div class="theme-toggle-wrapper">
+      <span class="theme-icon theme-icon-sun" [class.active]="isDarkMode">🌙</span>
+      <label class="theme-switch">
+        <input type="checkbox" [checked]="isDarkMode" (change)="toggleTheme()">
+        <span class="slider"></span>
+      </label>
+      <span class="theme-icon theme-icon-moon" [class.active]="!isDarkMode">☀️</span>
+    </div>
   </div>
 
-  <!-- User Header -->
+  <!-- Enhanced User Header with Dropdown -->
   <div class="user-header" *ngIf="currentUser">
-    <div class="user-info">
-      <img class="user-avatar"
-           [src]="currentUser.avatar_url || '/assets/default-avatar.png'"
-           [alt]="currentUser.full_name || currentUser.username">
-      <div class="user-details">
-        <h3>{{ currentUser.full_name || currentUser.username }}</h3>
-        <p>{{ currentUser.email }}</p>
+  <div class="user-greeting">
+    <h2>Hi {{ (currentUser.username || currentUser.username).split(' ')[0] || currentUser.username }} 👋</h2>
+    <p>Ready to discover your perfect soundtrack?</p>
+  </div>
+  
+  <div class="user-actions">
+    <!-- Profile dropdown without logout -->
+    <div class="user-profile-dropdown" [class.open]="isProfileDropdownOpen">
+      <button type="button" class="profile-trigger" (click)="toggleProfileDropdown()">
+        <img class="user-avatar"
+             [src]="currentUser.avatar_url || '/assets/default-avatar.png'"
+             [alt]="currentUser.full_name || currentUser.username">
+        <div class="user-details">
+          <h3>{{ currentUser.full_name || currentUser.username }}</h3>
+          <p>{{ currentUser.email }}</p>
+        </div>
+        <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" />
+        </svg>
+      </button>
+
+      <div class="dropdown-menu" *ngIf="isProfileDropdownOpen">
+        <button type="button" class="dropdown-item" (click)="viewHistory()">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3" />
+          </svg>
+          Mood History
+        </button>
+        
+        <button type="button" class="dropdown-item" (click)="openPreferences()">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" />
+          </svg>
+          Preferences
+        </button>
       </div>
     </div>
-    <button class="logout-btn" (click)="logout()">
+
+    <!-- Separate logout button -->
+    <button type="button" class="logout-btn" (click)="logout()">
       <svg viewBox="0 0 24 24" fill="currentColor">
         <path d="M16 17v-3H9v-4h7V7l5 5-5 5M14 2a2 2 0 012 2v2h-2V4H4v16h10v-2h2v2a2 2 0 01-2 2H4a2 2 0 01-2-2V4a2 2 0 012-2h10z"/>
       </svg>
       Logout
     </button>
   </div>
+</div>
+
+
 
   <!-- Main Header -->
   <header>
@@ -32,52 +69,120 @@
     <p>Discover music that matches your emotions through AI-powered mood detection.</p>
   </header>
 
-  <!-- Input Cards (Show only when no results) -->
-  <div class="input-container" *ngIf="!results && !isLoading">
-    <!-- Image Analysis Card -->
-    <div class="input-card">
-      <h3>Image Analysis</h3>
-      <p>Upload a photo and let our AI detect your emotions to curate the perfect playlist for your mood.</p>
-      <input id="file-upload" type="file" accept="image/*" (change)="onFileSelected($event)" style="display: none;">
-      <label class="upload-button" for="file-upload">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2Z" />
-        </svg>
-        Choose Image
-      </label>
+  <!-- Step 1 Section -->
+  <div class="step-section" *ngIf="!results && !isLoading">
+    <div class="step-header">
+      <div class="step-number">1</div>
+      <div class="step-content">
+        <h2>Choose Your Input Method</h2>
+        <p>Select how you'd like to express your current mood</p>
+      </div>
     </div>
 
-    <!-- Text Description Card -->
-    <div class="input-card">
-      <h3>Text Description</h3>
-      <p>Describe your current mood or the vibe you're looking for in a few words.</p>
-      <form class="text-search-form" (submit)="$event.preventDefault(); onTextSearch(moodInput.value)">
-        <input #moodInput class="mood-input"
-               type="text"
-               placeholder="e.g., happy, sad, energetic, calm..."
-               (focus)="onInputFocus($event)"
-               (blur)="onInputBlur($event)">
-        <button type="submit" class="search-button">Search</button>
-      </form>
+    <!-- Enhanced Input Cards -->
+    <div class="input-container">
+      <!-- Image Analysis Card -->
+      <div class="input-card" [class.has-upload]="uploadedImageData">
+        <div class="card-icon">📸</div>
+        <h3>Image Analysis</h3>
+        <p>Upload a photo and let our AI detect your emotions to curate the perfect playlist.</p>
+        
+        <!-- Image Upload Area -->
+        <div class="upload-area" [class.has-image]="uploadedImageData">
+          <div *ngIf="!uploadedImageData" class="upload-placeholder">
+            <input id="file-upload" type="file" accept="image/*" (change)="onFileSelected($event)" style="display: none;">
+            <label class="upload-button" for="file-upload">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2Z" />
+              </svg>
+              Choose Image
+            </label>
+          </div>
+          
+          <!-- Image Preview -->
+          <div *ngIf="uploadedImageData" class="image-preview">
+            <img [src]="uploadedImageData" alt="Uploaded image" class="preview-image">
+            <div class="image-info">
+              <div class="detected-mood" *ngIf="detectedMood">
+                <span class="mood-label">Detected: {{ detectedMood }}</span>
+                <div class="confidence-bar" *ngIf="moodConfidence">
+                  <div class="confidence-fill" [style.width.%]="moodConfidence * 100"></div>
+                </div>
+              </div>
+              <button class="change-image-btn" (click)="clearUploadedImage()">
+                Change Image
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Text Description Card -->
+      <div class="input-card">
+        <div class="card-icon">✍️</div>
+        <h3>Text Description</h3>
+        <p>Describe your current mood or the vibe you're looking for in words.</p>
+        
+        <!-- Enhanced Text Form -->
+        <form class="text-search-form" (submit)="onTextSearchSubmit($event, moodInput.value)">
+          <div class="input-wrapper">
+            <input #moodInput class="mood-input"
+                   type="text"
+                   placeholder="I'm feeling..."
+                   (focus)="onInputFocus($event)"
+                   (blur)="onInputBlur($event)"
+                   (input)="onInputChange($event)">
+            <button type="submit" class="search-button" [disabled]="!moodInput.value.trim()">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" />
+              </svg>
+            </button>
+          </div>
+        </form>
+
+        <!-- Mood Suggestions -->
+        <div class="mood-suggestions">
+          <p class="suggestions-label">Try these:</p>
+          <div class="suggestion-tags">
+            <button 
+              *ngFor="let suggestion of moodSuggestions" 
+              class="suggestion-tag"
+              (click)="selectSuggestion(suggestion)">
+              {{ suggestion }}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Loading State -->
-  <div *ngIf="isLoading" class="state-indicator" [@fadeInOut]>
-    <div class="spinner"></div>
-    <p>Analyzing your mood and finding the perfect tracks...</p>
+  <!-- Enhanced Loading State -->
+  <div *ngIf="isLoading" class="loading-state" [@fadeInOut]>
+    <div class="loading-content">
+      <div class="loading-animation">
+        <div class="music-notes">
+          <div class="note note-1">♪</div>
+          <div class="note note-2">♫</div>
+          <div class="note note-3">♪</div>
+        </div>
+      </div>
+      <h3>{{ loadingMessage }}</h3>
+      <p>Finding the perfect tracks for your mood...</p>
+    </div>
   </div>
 
   <!-- Error Message -->
   <div *ngIf="errorMessage && !isLoading" class="state-indicator error-message" [@fadeInOut]>
+    <div class="error-icon">⚠️</div>
+    <h3>Oops! Something went wrong</h3>
     <p>{{ errorMessage }}</p>
-    <button class="reset-button" (click)="reset()">Try Again</button>
+    <button class="retry-button" (click)="reset()">Try Again</button>
   </div>
 
-  <!-- Results Section - Spotify-like Interface -->
+  <!-- Enhanced Results Section -->
   <div *ngIf="results && !isLoading" class="results-section" [@fadeInOut]>
-    <!-- Playlist Header -->
-    <div class="playlist-header">
+    <!-- Mood-themed Playlist Header -->
+    <div class="playlist-header" [attr.data-mood]="results.emotion.toLowerCase()">
       <div class="playlist-cover">
         <img class="cover-image"
              [src]="results.tracks[0].album_art_url || '/assets/default-album.png'"
@@ -87,14 +192,22 @@
             <path d="M8,5.14V19.14L19,12.14L8,5.14Z" />
           </svg>
         </button>
+        <div class="mood-indicator">
+          <span class="mood-emoji">{{ getMoodEmoji(results.emotion) }}</span>
+        </div>
       </div>
       
       <div class="playlist-info">
         <span class="playlist-type">Mood Playlist</span>
         <h1>{{ results.emotion }} Mix</h1>
-        <p class="playlist-description">Curated tracks matching your {{ results.emotion.toLowerCase() }} mood</p>
+        <p class="playlist-description">
+          {{ getPlaylistDescription(results.emotion) }}
+        </p>
         <div class="playlist-stats">
           <span>{{ results.tracks.length }} songs</span>
+          <div class="confidence-display" *ngIf="results.confidence">
+            <span>{{ (results.confidence * 100) | number:'1.0-0' }}% confidence</span>
+          </div>
           <button class="save-playlist-btn" (click)="saveAsPlaylist()">
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
@@ -105,7 +218,7 @@
       </div>
     </div>
 
-    <!-- Track List Container -->
+    <!-- Track List Container (keeping existing structure) -->
     <div class="track-list-container">
       <div class="track-list-header">
         <div class="col-index">#</div>
@@ -118,14 +231,12 @@
         </div>
       </div>
 
-      <!-- Track List -->
       <div class="track-list" [@staggerIn]>
         <div *ngFor="let track of results.tracks; let i = index" 
              class="track-item"
              [class.expanded]="expandedTrackId === track.id"
              [class.playing]="currentlyPlaying === track.id">
           
-          <!-- Main Track Row -->
           <div class="track-main" (click)="toggleTrackExpansion(track.id)">
             <div class="col-index">
               <span class="track-number">{{ i + 1 }}</span>
@@ -166,7 +277,6 @@
             </div>
           </div>
 
-          <!-- Expanded Track Details -->
           <div *ngIf="expandedTrackId === track.id" class="track-expanded">
             <div class="track-details">
               <div class="detail-item">
@@ -193,7 +303,6 @@
               </div>
             </div>
 
-            <!-- Preview Player -->
             <div *ngIf="track.has_preview" class="preview-player">
               <audio [src]="track.preview_url" controls class="audio-controls">
                 Your browser does not support the audio element.
@@ -209,7 +318,7 @@
       </div>
     </div>
 
-    <!-- Action Buttons -->
+    <!-- Enhanced Action Buttons -->
     <div class="action-buttons">
       <button class="refresh-btn" (click)="refreshTracks()">
         <svg viewBox="0 0 24 24" fill="currentColor">
@@ -218,7 +327,12 @@
         Refresh Songs
       </button>
       
-      <button class="reset-button" (click)="reset()">New Search</button>
+      <button class="new-search-btn" (click)="reset()">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+        </svg>
+        New Search
+      </button>
     </div>
   </div>
 </div>
