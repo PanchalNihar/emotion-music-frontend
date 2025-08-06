@@ -24,12 +24,6 @@
           <div class="confidence-display" *ngIf="result.confidence">
             <span>{{ (result.confidence * 100) | number:'1.0-0' }}% confidence</span>
           </div>
-          <button class="save-playlist-btn" (click)="savePlaylist.emit()">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
-            </svg>
-            Save to Spotify
-          </button>
         </div>
       </div>
     </div>
