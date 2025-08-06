@@ -1,0 +1,16 @@
+<div *ngIf="isLoading">Loading your mood history...</div>
+<div *ngIf="error">
+  <p>Error loading mood history: {{ error }}</p>
+</div>
+<div *ngIf="moodHistory">
+  <h2>
+    Mood History {{ moodHistory.date_range.start }} -
+    {{ moodHistory.date_range.end }}
+  </h2>
+  <p>Total Entries : {{ moodHistory.total_entries }}</p>
+  <ul>
+    <li *ngFor="let mood of moodKeys()">
+      {{ mood }} : {{ moodHistory.emotion_distribution[mood] }}
+    </li>
+  </ul>
+</div>

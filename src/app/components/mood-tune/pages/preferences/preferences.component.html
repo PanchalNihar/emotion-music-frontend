@@ -1,0 +1,26 @@
+<div class="preferences-page">
+  <h2>Personal Preferences</h2>
+  <form>
+    <div class="form-group">
+      <label>Theme</label>
+      <select [(ngModel)]="preferences.theme" name="theme">
+        <option value="dark">Dark Mode</option>
+        <option value="light">Light Mode</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Favorite Genres</label>
+      <input [(ngModel)]="preferences.favoriteGenres" name="genres" placeholder="e.g. Pop, Rock, Jazz">
+    </div>
+
+    <div class="form-group">
+      <label>
+        <input type="checkbox" [(ngModel)]="preferences.weeklySummary" name="weeklySummary">
+        Receive weekly mood summary?
+      </label>
+    </div>
+
+    <button type="submit" class="save-btn">Save Preferences</button>
+  </form>
+</div>

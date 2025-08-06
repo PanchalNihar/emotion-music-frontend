@@ -142,11 +142,11 @@ export class MusicRecommendationComponent implements OnInit, OnDestroy {
   }
 
   viewHistory(): void {
-    console.log('View history');
+    this.router.navigate(['/mood-history']);
   }
 
   openPreferences(): void {
-    console.log('Open preferences');
+    this.router.navigate(['/preferences']);
   }
 
   // Audio control
@@ -200,12 +200,18 @@ export class MusicRecommendationComponent implements OnInit, OnDestroy {
   }
 
   refreshTracks(): void {
-    if (!this.lastEmotion) {
+    // Safely get the current mood from results (already displayed)
+    const mood = this.results?.emotion?.trim();
+    if (!mood) {
+      this.errorMessage = 'No mood to refresh. Please search for a mood first.';
       return;
     }
+    this.loadingMessage = 'Finding new tracks...';
     this.startLoading();
     const offset = Math.floor(Math.random() * 800);
-    this.musicService.getRecsByText(this.lastEmotion, offset).subscribe({
+
+    // Always fetch by current displayed emotion, not prior state
+    this.musicService.getRecsByText(mood, offset).subscribe({
       next: (response) => this.handleSuccess(response),
       error: (error) => this.handleError(error),
     });
@@ -236,6 +242,7 @@ export class MusicRecommendationComponent implements OnInit, OnDestroy {
   private handleSuccess(response: MusicRecommendationResponse): void {
     this.results = response;
     this.isLoading = false;
+    this.lastEmotion = response.emotion;
   }
 
   private handleError(error: any): void {
