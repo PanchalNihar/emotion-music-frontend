@@ -1,32 +1,104 @@
 <div class="input-card">
-      <div class="card-icon">📸</div>
-      <h3>Image Analysis</h3>
-      <p>Upload a photo and let our AI detect your emotions to curate the perfect playlist.</p>
-      
-      <div class="upload-area" [class.has-image]="uploadedImageData">
-        <div *ngIf="!uploadedImageData" class="upload-placeholder">
-          <input id="file-upload" type="file" accept="image/*" (change)="onFileSelected($event)" style="display: none;">
-          <label class="upload-button" for="file-upload">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2Z" />
-            </svg>
-            Choose Image
-          </label>
+  <div class="card-icon">📸</div>
+  <h3>Image Analysis</h3>
+  <p>Upload a photo or use your camera to detect emotions and get personalized music recommendations.</p>
+  
+  <div class="upload-area" [class.has-image]="uploadedImageData" [class.camera-mode]="isCameraMode">
+    
+    <!-- File Upload / Camera Selection (when no image) -->
+    <div *ngIf="!uploadedImageData && !isCameraMode" class="upload-options">
+      <div class="upload-methods">
+        <button class="method-btn camera-btn" (click)="startCamera()" [disabled]="isCapturing">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z" />
+          </svg>
+          {{ isCapturing ? 'Starting Camera...' : 'Use Camera' }}
+        </button>
+        
+        <div class="method-divider">
+          <span>or</span>
         </div>
         
-        <div *ngIf="uploadedImageData" class="image-preview">
-          <img [src]="uploadedImageData" alt="Uploaded image" class="preview-image">
-          <div class="image-info">
-            <div class="detected-mood" *ngIf="detectedMood">
-              <span class="mood-label">Detected: {{ detectedMood }}</span>
-              <div class="confidence-bar" *ngIf="moodConfidence">
-                <div class="confidence-fill" [style.width.%]="moodConfidence * 100"></div>
-              </div>
-            </div>
-            <button class="change-image-btn" (click)="clearImage.emit()">
-              Change Image
-            </button>
+        <button class="method-btn upload-btn" (click)="switchToUpload()">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2Z" />
+          </svg>
+          Upload Photo
+        </button>
+      </div>
+      
+      <!-- Hidden file input -->
+      <input #fileInput 
+             type="file" 
+             accept="image/*" 
+             (change)="onFileSelected($event)" 
+             style="display: none;">
+    </div>
+
+    <!-- Camera View - Always render when in camera mode -->
+    <div *ngIf="isCameraMode && !uploadedImageData" class="camera-container">
+      <!-- Show loading while starting camera -->
+      <div *ngIf="!isCameraActive && isCapturing" class="camera-loading">
+        <div class="loading-spinner"></div>
+        <p>Starting camera...</p>
+      </div>
+
+      <!-- Video element - always present when in camera mode -->
+      <video #videoElement 
+             autoplay 
+             playsinline 
+             class="camera-video"
+             [style.display]="isCameraActive ? 'block' : 'none'">
+      </video>
+      
+      <div *ngIf="isCameraActive" class="camera-controls">
+        <button class="capture-btn" (click)="capturePhoto()" [disabled]="isCapturing">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M10,9.5A1.5,1.5 0 0,1 11.5,8A1.5,1.5 0 0,1 13,9.5A1.5,1.5 0 0,1 11.5,11A1.5,1.5 0 0,1 10,9.5M14.5,9.5A1.5,1.5 0 0,1 16,8A1.5,1.5 0 0,1 17.5,9.5A1.5,1.5 0 0,1 16,11A1.5,1.5 0 0,1 14.5,9.5M12,17C13.11,17 14.17,16.69 15.07,16.15C14.9,14.95 13.71,14 12,14C10.29,14 9.1,14.95 8.93,16.15C9.83,16.69 10.89,17 12,17Z" />
+          </svg>
+          {{ isCapturing ? 'Capturing...' : 'Take Photo' }}
+        </button>
+        
+        <button class="cancel-btn" (click)="stopCamera()">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+          </svg>
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <!-- Image Preview (when image is captured/uploaded) -->
+    <div *ngIf="uploadedImageData" class="image-preview">
+      <img [src]="uploadedImageData" alt="Captured/Uploaded image" class="preview-image">
+      <div class="image-info">
+        <div class="detected-mood" *ngIf="detectedMood">
+          <span class="mood-label">Detected: {{ detectedMood }}</span>
+          <div class="confidence-bar" *ngIf="moodConfidence">
+            <div class="confidence-fill" [style.width.%]="moodConfidence * 100"></div>
           </div>
+          <span class="confidence-text">{{ (moodConfidence * 100) | number:'1.0-0' }}% confidence</span>
+        </div>
+        <div class="image-actions">
+          <button class="action-btn retry-btn" (click)="clearCurrentImage()">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" />
+            </svg>
+            Try Again
+          </button>
         </div>
       </div>
     </div>
+
+    <!-- Error Message -->
+    <div *ngIf="cameraError" class="error-message">
+      <p>{{ cameraError }}</p>
+      <button class="retry-btn" (click)="cameraError = null; startCamera()">
+        Retry Camera
+      </button>
+    </div>
+
+    <!-- Hidden canvas for photo capture -->
+    <canvas #canvasElement style="display: none;"></canvas>
+  </div>
+</div>

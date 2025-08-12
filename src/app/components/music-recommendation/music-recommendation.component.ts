@@ -65,6 +65,7 @@ export class MusicRecommendationComponent implements OnInit, OnDestroy {
   currentlyPlaying: string | null = null;
   audioElement: HTMLAudioElement | null = null;
   lastEmotion: any;
+isCameraMode: any;
 
   constructor(
     private musicService: MusicRecommendationService,
