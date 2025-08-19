@@ -14,23 +14,6 @@ export class PlaylistHeaderComponent {
   @Output() playAll = new EventEmitter<void>();
   @Output() savePlaylist = new EventEmitter<void>();
 
-  getMoodEmoji(emotion: string): string {
-    const emojiMap: { [key: string]: string } = {
-      'happy': '😊',
-      'sad': '😢',
-      'angry': '😠',
-      'calm': '😌',
-      'energetic': '⚡',
-      'romantic': '💕',
-      'excited': '🤩',
-      'neutral': '😐',
-      'fearful': '😰',
-      'surprised': '😲',
-      'disgusted': '🤢'
-    };
-    return emojiMap[emotion.toLowerCase()] || '🎵';
-  }
-
   getPlaylistDescription(emotion: string): string {
     const descriptions: { [key: string]: string } = {
       'happy': 'Uplifting tracks to keep your spirits high and energy flowing',
