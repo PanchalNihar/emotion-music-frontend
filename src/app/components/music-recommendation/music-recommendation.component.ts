@@ -178,7 +178,7 @@ isCameraMode: any;
   async saveAsPlaylist(): Promise<void> {
     if (!this.results?.tracks) return;
     const trackIds = this.results.tracks.map((t) => t.id).filter((id) => id);
-    const playlistName = `MoodTune - ${this.results.emotion} Mix`;
+    const playlistName = `Tuneify - ${this.results.emotion} Mix`;
 
     try {
       await this.musicService
