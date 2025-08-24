@@ -1,6 +1,8 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { isPlatformBrowser } from '@angular/common';
 
 export interface MoodHistoryResponse {
   emotion_distribution: { [emotion: string]: number };
@@ -13,21 +15,29 @@ export interface MoodHistoryResponse {
   providedIn: 'root',
 })
 export class MoodHistoryService {
-  private apiUrl = 'http://127.0.0.1:8000';
+  private apiUrl = `${environment.apiUrl}`;
+  
+  constructor(
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
-  constructor(private http: HttpClient) {}
+  private getAuthHeaders(): HttpHeaders {
+    if (!isPlatformBrowser(this.platformId)) {
+      return new HttpHeaders();
+    }
 
-  getMoodHistory(days: number = 30): Observable<MoodHistoryResponse> {
     const token = localStorage.getItem('access_token');
-
-    const headers = new HttpHeaders({
+    return new HttpHeaders({
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     });
+  }
 
+  getMoodHistory(days: number = 30): Observable<MoodHistoryResponse> {
     return this.http.get<MoodHistoryResponse>(
       `${this.apiUrl}/api/analytics/mood-history?days=${days}`,
-      { headers }
+      { headers: this.getAuthHeaders() }
     );
   }
 }

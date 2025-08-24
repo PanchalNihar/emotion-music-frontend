@@ -5,8 +5,10 @@ import {
   OnDestroy,
   Renderer2,
   HostListener,
+  PLATFORM_ID,
+  Inject,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 
 // Services
@@ -71,28 +73,38 @@ isCameraMode: any;
     private musicService: MusicRecommendationService,
     private authService: AuthService,
     private router: Router,
-    private renderer: Renderer2
+    private renderer: Renderer2,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit(): void {
+  // Only manipulate document in browser environment
+  if (isPlatformBrowser(this.platformId)) {
     this.renderer.removeClass(document.body, 'light-theme');
-    this.authService.currentUser$.subscribe((user) => {
-      this.currentUser = user;
-      if (!user) {
-        this.router.navigate(['/login']);
-      }
-    });
   }
+
+  this.authService.currentUser$.subscribe((user) => {
+    this.currentUser = user;
+    if (!user) {
+      this.router.navigate(['/login']);
+    }
+  });
+}
+
 
   // Theme
   toggleTheme(): void {
-    this.isDarkMode = !this.isDarkMode;
+  this.isDarkMode = !this.isDarkMode;
+  
+  if (isPlatformBrowser(this.platformId)) {
     if (this.isDarkMode) {
       this.renderer.removeClass(document.body, 'light-theme');
     } else {
       this.renderer.addClass(document.body, 'light-theme');
     }
   }
+}
+
 
   // Image upload
   onFileSelected(file: File): void {
@@ -152,29 +164,33 @@ isCameraMode: any;
 
   // Audio control
   playPreview(track: Track): void {
-    if (!track.preview_url) return;
+  if (!track.preview_url) return;
+  
+  // Only create audio elements in browser
+  if (!isPlatformBrowser(this.platformId)) return;
 
-    // Stop current audio if playing
-    if (this.audioElement) {
-      this.audioElement.pause();
-      this.audioElement = null;
-    }
-
-    if (this.currentlyPlaying === track.id) {
-      this.currentlyPlaying = null;
-      return;
-    }
-
-    this.audioElement = new Audio(track.preview_url);
-    this.audioElement.play();
-    this.currentlyPlaying = track.id;
-
-    // Auto-stop after 30 seconds
-    this.audioElement.addEventListener('ended', () => {
-      this.currentlyPlaying = null;
-      this.audioElement = null;
-    });
+  // Stop current audio if playing
+  if (this.audioElement) {
+    this.audioElement.pause();
+    this.audioElement = null;
   }
+
+  if (this.currentlyPlaying === track.id) {
+    this.currentlyPlaying = null;
+    return;
+  }
+
+  this.audioElement = new Audio(track.preview_url);
+  this.audioElement.play();
+  this.currentlyPlaying = track.id;
+  
+  // Auto-stop after 30 seconds
+  this.audioElement.addEventListener('ended', () => {
+    this.currentlyPlaying = null;
+    this.audioElement = null;
+  });
+}
+
   async saveAsPlaylist(): Promise<void> {
     if (!this.results?.tracks) return;
     const trackIds = this.results.tracks.map((t) => t.id).filter((id) => id);

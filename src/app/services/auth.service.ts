@@ -1,7 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 export interface User {
   id: string;
@@ -39,20 +41,33 @@ declare const google: any;
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://127.0.0.1:8000';
+  private apiUrl = `${environment.apiUrl}`;
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient, private router: Router) {
-    // Check if user is already logged in
-    this.loadStoredUser();
-    // Initialize Google Sign-In
-    this.initializeGoogleSignIn();
+  constructor(
+    private http: HttpClient, 
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    // Only initialize if we're in the browser
+    if (isPlatformBrowser(this.platformId)) {
+      // Check if user is already logged in
+      this.loadStoredUser();
+      // Initialize Google Sign-In
+      this.initializeGoogleSignIn();
+    }
   }
 
   private loadStoredUser(): void {
+    // Double-check we're in browser environment
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     const token = localStorage.getItem('access_token');
     const user = localStorage.getItem('current_user');
+    
     if (token && user) {
       try {
         this.currentUserSubject.next(JSON.parse(user));
@@ -64,21 +79,33 @@ export class AuthService {
   }
 
   private initializeGoogleSignIn(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     if (typeof google !== 'undefined') {
       google.accounts.id.initialize({
-        client_id: '61367993371-uo7te2rdier6c48o1002tr1gbhri5a91.apps.googleusercontent.com',
+        client_id: `${environment.client_id}`,
         callback: this.handleGoogleSignIn.bind(this)
       });
     }
   }
 
   signInWithGoogle(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     if (typeof google !== 'undefined') {
       google.accounts.id.prompt();
     }
   }
 
   renderGoogleSignInButton(elementId: string): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     if (typeof google !== 'undefined') {
       google.accounts.id.renderButton(
         document.getElementById(elementId),
@@ -96,14 +123,16 @@ export class AuthService {
     const googleAuthRequest: GoogleAuthRequest = {
       credential: response.credential
     };
-    
+
     this.googleAuth(googleAuthRequest).subscribe({
       next: (authResponse) => {
         console.log('Google Sign-In successful:', authResponse);
         // Auto-redirect after successful login
         this.router.navigate(['/music-recommendation']).then(() => {
           // Force reload to ensure all data is properly loaded
-          window.location.reload();
+          if (isPlatformBrowser(this.platformId)) {
+            window.location.reload();
+          }
         });
       },
       error: (error) => {
@@ -145,25 +174,34 @@ export class AuthService {
   }
 
   private setAuthData(response: AuthResponse): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     localStorage.setItem('access_token', response.access_token);
     localStorage.setItem('current_user', JSON.stringify(response.user));
     this.currentUserSubject.next(response.user);
   }
 
   logout(): void {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('current_user');
-    this.currentUserSubject.next(null);
-    
-    // Sign out from Google
-    if (typeof google !== 'undefined') {
-      google.accounts.id.disableAutoSelect();
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('current_user');
+      
+      // Sign out from Google
+      if (typeof google !== 'undefined') {
+        google.accounts.id.disableAutoSelect();
+      }
     }
     
+    this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
   }
 
   getToken(): string | null {
+    if (!isPlatformBrowser(this.platformId)) {
+      return null;
+    }
     return localStorage.getItem('access_token');
   }
 

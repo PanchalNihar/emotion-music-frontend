@@ -1,6 +1,8 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { isPlatformBrowser } from '@angular/common';
 
 export interface Track {
   id: string;
@@ -28,11 +30,18 @@ export interface MusicRecommendationResponse {
   providedIn: 'root',
 })
 export class MusicRecommendationService {
-  private apiUrl = 'http://127.0.0.1:8000';
+  private apiUrl = `${environment.apiUrl}`;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   private getAuthHeaders(): HttpHeaders {
+    if (!isPlatformBrowser(this.platformId)) {
+      return new HttpHeaders();
+    }
+
     const token = localStorage.getItem('access_token');
     return new HttpHeaders().set('Authorization', `Bearer ${token}`);
   }
@@ -40,15 +49,18 @@ export class MusicRecommendationService {
   getRecsByImage(imageFile: File): Observable<MusicRecommendationResponse> {
     const formData = new FormData();
     formData.append('file', imageFile, imageFile.name);
-    
+
     return this.http.post<MusicRecommendationResponse>(
-      `${this.apiUrl}/api/recommendations/by-image`, 
+      `${this.apiUrl}/api/recommendations/by-image`,
       formData,
       { headers: this.getAuthHeaders() }
     );
   }
 
-  getRecsByText(emotion: string,offset=0): Observable<MusicRecommendationResponse> {
+  getRecsByText(
+    emotion: string,
+    offset = 0
+  ): Observable<MusicRecommendationResponse> {
     return this.http.get<MusicRecommendationResponse>(
       `${this.apiUrl}/api/recommendations/by-text/${emotion}?offset=${offset}`,
       { headers: this.getAuthHeaders() }
@@ -61,11 +73,18 @@ export class MusicRecommendationService {
       { headers: this.getAuthHeaders() }
     );
   }
-  
-  createSpotifyPlaylist(trackIds: string[], playlistName: string): Observable<any> {
-  return this.http.post(`${this.apiUrl}/api/spotify/create-playlist`, {
-    track_ids: trackIds,
-    playlist_name: playlistName
-  }, { headers: this.getAuthHeaders() });
-}
+
+  createSpotifyPlaylist(
+    trackIds: string[],
+    playlistName: string
+  ): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/api/spotify/create-playlist`,
+      {
+        track_ids: trackIds,
+        playlist_name: playlistName,
+      },
+      { headers: this.getAuthHeaders() }
+    );
+  }
 }
